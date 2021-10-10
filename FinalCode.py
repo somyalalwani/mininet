@@ -19,8 +19,8 @@ def fetchResponse(url,choice):
 			Switchlinkinfo(jData,switch[h2])
 		elif(choice=="costcompute"):
 			costcompute(jData,portKey)
-                elif(choice=="getswitchlatency"):
-                        getswitchlatency(jData)
+        elif(choice=="getswitchlatency"):
+            getswitchlatency(jData)
 
 	else:
 		response.raise_for_status()
