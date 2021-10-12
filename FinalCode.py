@@ -69,7 +69,7 @@ def Switchlinkinfo(data,s):
         sourceTemp = source.split(":")[7]
         destinationTemp = destination.split(":")[7]
                 
-                latency=str(i['latency'])
+        latency=str(i['latency'])
 
         G.add_edge(int(sourceTemp,16), int(destinationTemp,16))            
                 
@@ -85,8 +85,8 @@ def Switchlinkinfo(data,s):
         linkPorts[tempSourceToDestination] = portSourceToDestination
         linkPorts[tempDestinationToSource] = portDestinationToSource
 
-                linklat[tempSourceToDestination]=latency
-                linklat[tempDestinationToSource]=latency
+        linklat[tempSourceToDestination]=latency
+        linklat[tempDestinationToSource]=latency
                 
 
         if (source==s):
@@ -147,7 +147,7 @@ def costcompute(data,key):
 
 #Find link cost from bandwidth URI
 def fetchLinkCost():
-        global finalcost
+    global finalcost
     global portKey
     global cost
         
@@ -165,7 +165,7 @@ def fetchLinkCost():
                 continue
             else:
                 portKey = srcShortID + "::" + temp
-                                portNumber = linkPorts[portKey].split("::")[0]
+                portNumber = linkPorts[portKey].split("::")[0]
                 stats = "http://localhost:8080/wm/statistics/bandwidth/" + src + "/" + portNumber+ "/json"
                 fetchResponse(stats,"costcompute")
                 srcShortID = temp
@@ -230,7 +230,7 @@ def flowRule(currentNode, flowCount, inPort, outPort, staticFlowURL):
 #Flow addition based on cost computation
 def addFlow():
     global bestPath
-        global shortestPath
+    global shortestPath
 
     flowCount = 1
     staticFlowURL = "http://127.0.0.1:8080/wm/staticflowpusher/json"
@@ -282,15 +282,15 @@ def getlinkLatency():
     global pathlat
     
     for key in pathlat:
-    temp1 = key.split('::')
-    length = len(temp1)
-    count = 1
-    for i in temp1:
-        temp2 = i + '::' + temp1[count]
+        temp1 = key.split('::')
+        length = len(temp1)
+        count = 1
+        for i in temp1:
+            temp2 = i + '::' + temp1[count]
             pathlat[key] = int(pathlat[key])+int(linklat[temp2]) 
-        count += 1
-        if count == length:
-           break    
+            count += 1
+            if count == length:
+               break    
    
 
 #Method to compute latency of every switch
@@ -313,10 +313,10 @@ def getswitchlatency(jData):
 def loadbalance():
     linkURL = "http://localhost:8080/wm/topology/links/json"
     fetchResponse(linkURL,"Switchlinkinfo")
-        computeRoute()
-        url=('http://localhost:8080/wm/core/switch/all/flow/json')
-        fetchResponse(url,"getswitchlatency")
-        getlinkLatency()
+    computeRoute()
+    url=('http://localhost:8080/wm/core/switch/all/flow/json')
+    fetchResponse(url,"getswitchlatency")
+    getlinkLatency()
     fetchLinkCost()
     addFlow()
 
@@ -328,10 +328,10 @@ h1 = ""
 h2 = ""
 
 #Enter hosts in which load balancing is to be done
-print "\n\n****************************Enter SOURCE and DESTINATION Hosts on which you want to do LOAD BALANCING************************************"
-print "\n\nEnter SOURCE Host:"
+print("\n\n****************************Enter SOURCE and DESTINATION Hosts on which you want to do LOAD BALANCING************************************")
+print("\n\nEnter SOURCE Host:")
 h1 = int(input())
-print "\n\nEnter DESTINATION Host:"
+print("\n\nEnter DESTINATION Host:")
 h2 = int(input())
 
 
@@ -378,38 +378,38 @@ G = nx.Graph()
 
 try:
 
-            #Enables Statistics Like B/W, etc
-        enableStats = "http://localhost:8080/wm/statistics/config/enable/json"
-        requests.put(enableStats)
+    #Enables Statistics Like B/W, etc
+    enableStats = "http://localhost:8080/wm/statistics/config/enable/json"
+    requests.put(enableStats)
 
-        #Device Info (Switch To Which The Device Is Connected & The MAC Address Of Each Device)
-        deviceInfo = "http://localhost:8080/wm/device/"    
-        fetchResponse(deviceInfo,"deviceInfo")
+    #Device Info (Switch To Which The Device Is Connected & The MAC Address Of Each Device)
+    deviceInfo = "http://localhost:8080/wm/device/"    
+    fetchResponse(deviceInfo,"deviceInfo")
 
-                loadbalance()
-                os.system('clear')
-                                
-   
-                print "\t\n\n############################################################FINAL OUTPUT############################################\n\n"
+    loadbalance()
+    os.system('clear')
+                    
+
+    print("\t\n\n############################################################FINAL OUTPUT############################################\n\n")
+
+    print("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Switch connected to HOST 1~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\t\t\t\t\t", switch[h1])
+
+    # IP & MAC
+    print("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~IP and Mac addresses of all Devices in Topology~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n", deviceMAC)
+
+
+    # Host Switch Ports
+    print("\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Hosts and connected SwitchPorts~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n", hostPorts)
+       
+    print("\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~FINAL LINK COSTS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\t\t\t\t",finalcost)
  
-        print "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Switch connected to HOST 1~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\t\t\t\t\t", switch[h1]
+    print("\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Available Paths for routing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",path)
+    
+    print("\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SHORTEST PATH for routing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\t\t\t\t\t\t ",shortestPath)
 
-        # IP & MAC
-        print "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~IP and Mac addresses of all Devices in Topology~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n", deviceMAC
+    print("\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Best path for routing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\t\t\t",bestPath)
 
-
-        # Host Switch Ports
-        print "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Hosts and connected SwitchPorts~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n", hostPorts
-           
-                print "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~FINAL LINK COSTS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\t\t\t\t",finalcost
-             
-                print "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Available Paths for routing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",path
-                
-                print "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~SHORTEST PATH for routing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\t\t\t\t\t\t ",shortestPath
-
-                print "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Best path for routing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\t\t\t",bestPath
-         
-                print "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~LATENCY~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\t\t\t\t",pathlat
+    print("\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~LATENCY~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\t\t\t\t",pathlat)
 
 except KeyboardInterrupt:
-       exit()
+    exit()
