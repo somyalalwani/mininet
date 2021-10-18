@@ -383,7 +383,7 @@ try:
     requests.put(enableStats)
 
     #Device Info (Switch To Which The Device Is Connected & The MAC Address Of Each Device)
-    deviceInfo = "http://localhost:3022/wm/device/"    
+    deviceInfo = "http://localhost:8080/wm/device/"    
     fetchResponse(deviceInfo,"deviceInfo")
 
     loadbalance()
