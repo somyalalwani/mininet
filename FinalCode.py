@@ -379,7 +379,7 @@ G = nx.Graph()
 try:
 
     #Enables Statistics Like B/W, etc
-    enableStats = "http://localhost:8080/wm/statistics/config/enable/json"
+    enableStats = "http://localhost:8080/wm/statistics/config/enable/json/"
     requests.put(enableStats)
 
     #Device Info (Switch To Which The Device Is Connected & The MAC Address Of Each Device)
