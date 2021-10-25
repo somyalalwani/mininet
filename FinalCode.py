@@ -412,4 +412,9 @@ try:
     print("\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~LATENCY~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\t\t\t\t",pathlat)
 
 except KeyboardInterrupt:
-    exit()
+    print("Connection refused by the server..")
+    print("Let me sleep for 5 seconds")
+    print("ZZzzzz...")
+    time.sleep(5)
+    print("Was a nice sleep, now let me continue...")
+    continue
