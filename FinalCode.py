@@ -9,7 +9,7 @@ import os
 
 #Method to get data 
 def fetchResponse(url,choice):
-    response = requests.get(url)
+    response = requests.get(url, verify=False)
 
     if(response.ok):
         jData = json.loads(response.content)
@@ -380,7 +380,7 @@ try:
 
     #Enables Statistics Like B/W, etc
     enableStats = "http://localhost:8080/wm/statistics/config/enable/json/"
-    requests.put(enableStats)
+    requests.put(enableStats, verify=False)
 
     #Device Info (Switch To Which The Device Is Connected & The MAC Address Of Each Device)
     deviceInfo = "http://localhost:8080/wm/device/"    
