@@ -38,16 +38,13 @@ def deviceInformation(data):
             deviceMAC[ip] = mac
                 
             for j in i['attachmentPoint']:
-                for key in j:
-                    temp = key.encode('ascii','ignore')
-                                        #print(temp)
-                    if(temp=="switch"):
-                        switchDPID = j[key].encode('ascii','ignore')
-                        switch[ip] = switchDPID
-                    elif(temp=="port"):
-                        portNumber = j[key]
-                        switchShort = switchDPID.split(":")[7]
-                        hostPorts[ip+ "::" + switchShort] = str(portNumber)
+                if 'switchDPID' in j.keys():
+                    switchDPID = j['switchDPID']
+                    switch[ip] = switchDPID
+                else:
+                    portNumber = j[key]
+                    switchShort = switchDPID.split(":")[7]
+                    hostPorts[ip+ "::" + switchShort] = str(portNumber)
 
 
 
