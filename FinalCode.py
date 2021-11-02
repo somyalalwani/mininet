@@ -1,5 +1,6 @@
 import requests
-import json
+#import json
+import simplejson as json
 import unicodedata
 from subprocess import Popen, PIPE
 import time
@@ -16,6 +17,7 @@ def fetchResponse(url,choice):
         if(choice=="deviceInfo"):
             deviceInformation(jData)
         elif(choice=="Switchlinkinfo"):
+            #print(switch)
             Switchlinkinfo(jData,switch[h2])
         elif(choice=="costcompute"):
             costcompute(jData,portKey)
@@ -23,7 +25,8 @@ def fetchResponse(url,choice):
             getswitchlatency(jData)
 
     else:
-        response.raise_for_status()
+        #response.raise_for_status()
+        return
 
 #Device Information all connected devices 
 def deviceInformation(data):
@@ -31,16 +34,17 @@ def deviceInformation(data):
     global deviceMAC
     global hostPorts
     switchDPID = ""
-    for i in data['devices']:
+    for i in data:
         if(i['ipv4']):
-            ip = i['ipv4'][0].encode('ascii','ignore')
+            #ip = i['ipv4'][0].encode('ascii','ignore')
+            ip = i['ipv4'][0]
             mac = i['mac'][0].encode('ascii','ignore')
             deviceMAC[ip] = mac
                 
             for j in i['attachmentPoint']:
                 if 'switchDPID' in j.keys():
                     switchDPID = j['switchDPID']
-                    switch[ip] = switchDPID
+                    switch[str(ip)] = switchDPID
                 else:
                     portNumber = j[key]
                     switchShort = switchDPID.split(":")[7]
@@ -57,16 +61,22 @@ def Switchlinkinfo(data,s):
 
     links=[]
     for i in data:
-        source = i['src-switch'].encode('ascii','ignore')
-        destination = i['dst-switch'].encode('ascii','ignore')
+        #source = i['src-switch'].encode('ascii','ignore')
+        #destination = i['dst-switch'].encode('ascii','ignore')
+        
+        source = i['src-switch']
+        destination = i['dst-switch']
 
         sourcePort = str(i['src-port'])
         destinationPort = str(i['dst-port'])
 
         sourceTemp = source.split(":")[7]
         destinationTemp = destination.split(":")[7]
-                
-        latency=str(i['latency'])
+         
+        try:
+            latency=str(i['latency'])
+        except Exception as e:
+            latency = "0"
 
         G.add_edge(int(sourceTemp,16), int(destinationTemp,16))            
                 
@@ -233,14 +243,17 @@ def addFlow():
     staticFlowURL = "http://127.0.0.1:8080/wm/staticflowpusher/json"
 
     shortestPath = min(finalcost, key=finalcost.get)
-
+    
     currentNode = shortestPath.split("::",2)[0]
     nextNode = shortestPath.split("::")[1]
 
     # Port Computation
     port = linkPorts[currentNode+"::"+nextNode]
     outPort = port.split("::")[0]
-    inPort = hostPorts[h2+"::"+switch[h2].split(":")[7]]
+    try:
+        inPort = hostPorts[h2+"::"+switch[h2].split(":")[7]]
+    except Exception as e:
+        inPort = port.split("::")[1]
 
     flowRule(currentNode,flowCount,inPort,outPort,staticFlowURL)
 
@@ -297,9 +310,17 @@ def getswitchlatency(jData):
     global temp
     temp=0
     for key in path:
+        #print(path)
         for switch in path[key]:
-            duration=int(jData[switch]['flows'][0]['duration_sec'])
-            bytecount=int(jData[switch]['flows'][0]['byte_count'])
+            print(switch)
+            #duration=int(jData[switch]['flows'][0]['duration_sec'])
+            #bytecount=int(jData[switch]['flows'][0]['byte_count'])
+            try:
+                duration=int(switch.split(':')[-1])
+                bytecount=int(switch.split(':')[-1])
+            except Exception as e:
+                duration=2
+                bytecount=2
             if(bytecount==0):bytecount=1
             temp += 100 * (duration/bytecount)
         pathlat[key]=temp
