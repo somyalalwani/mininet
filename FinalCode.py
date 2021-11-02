@@ -12,7 +12,7 @@ def fetchResponse(url,choice):
     response = requests.get(url)
 
     if(response.ok):
-        jData = json.loads(response.content)
+        jData = json.loads(response.content.decode('utf-8'))
         if(choice=="deviceInfo"):
             deviceInformation(jData)
         elif(choice=="Switchlinkinfo"):
