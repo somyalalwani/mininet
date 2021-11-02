@@ -166,7 +166,7 @@ def fetchLinkCost():
             else:
                 portKey = srcShortID + "::" + temp
                 portNumber = linkPorts[portKey].split("::")[0]
-                stats = "http://localhost:8008/wm/statistics/bandwidth/" + src + "/" + portNumber+ "/json"
+                stats = "http://localhost:8080/wm/statistics/bandwidth/" + src + "/" + portNumber+ "/json"
                 fetchResponse(stats,"costcompute")
                 srcShortID = temp
                 src = link
@@ -233,7 +233,7 @@ def addFlow():
     global shortestPath
 
     flowCount = 1
-    staticFlowURL = "http://127.0.0.1:8008/wm/staticflowpusher/json"
+    staticFlowURL = "http://127.0.0.1:8080/wm/staticflowpusher/json"
 
     shortestPath = min(finalcost, key=finalcost.get)
 
@@ -311,10 +311,10 @@ def getswitchlatency(jData):
 
 # Load Balancer Function
 def loadbalance():
-    linkURL = "http://localhost:8008/wm/topology/links/json"
+    linkURL = "http://localhost:8080/wm/topology/links/json"
     fetchResponse(linkURL,"Switchlinkinfo")
     computeRoute()
-    url=('http://localhost:8008/wm/core/switch/all/flow/json')
+    url=('http://localhost:8080/wm/core/switch/all/flow/json')
     fetchResponse(url,"getswitchlatency")
     getlinkLatency()
     fetchLinkCost()
@@ -379,11 +379,11 @@ G = nx.Graph()
 try:
 
     #Enables Statistics Like B/W, etc
-    enableStats = "http://localhost:8008/wm/statistics/config/enable/json/"
+    enableStats = "http://localhost:8080/wm/statistics/config/enable/json/"
     requests.put(enableStats, verify=False)
 
     #Device Info (Switch To Which The Device Is Connected & The MAC Address Of Each Device)
-    deviceInfo = "http://localhost:8008/wm/device/"    
+    deviceInfo = "http://localhost:8080/wm/device/"    
     fetchResponse(deviceInfo,"deviceInfo")
 
     loadbalance()
