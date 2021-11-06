@@ -171,8 +171,7 @@ def flowRule( currentNode ,flowCount ,inPort ,outPort ,staticFlowURL):
     zero = "0"
     max_pr = "32768"
     eth_type = "0x0800"
-    flow = 
-    {
+    flow = {
         'switch': xx+currentNode,
         "name" : ff,
         "cookie" : zero,
