@@ -9,27 +9,6 @@ from subprocess import Popen, PIPE
 import time
 
 
-def fetchResponse(url,choice):
-    response = requests.get(url)
-
-    if(response.ok):
-        jData = json.loads(response.content.decode('utf-8'))
-        if (choice == "deviceInfo" ):
-            deviceInformation(jData)
-        elif (choice == "getswitchlatency"):
-            getswitchlatency(jData)
-        elif (choice == "costcompute"):
-            costcompute(jData,portKey)
-        elif (choice == "Switchlinkinfo"):
-            #print(switch)
-            Switchlinkinfo(jData,switch[h2])
-        
-    else:
-        #response.raise_for_status()
-        #print("abc")
-        return
-
-#Device Information all connected devices 
 def deviceInformation(data):
     global deviceMAC
     global switch
@@ -55,7 +34,26 @@ def deviceInformation(data):
                     hostPorts[ ip +"::"+ switchDPID.split( ":" )[7]] = str(portNumber)
 
 
-#Method to find link information of all switches 
+def fetchResp(url,choice):
+    response = requests.get(url)
+
+    if(response.ok):
+        jData = json.loads(response.content.decode('utf-8'))
+        if (choice == "deviceInfo" ):
+            deviceInformation(jData)
+        elif (choice == "getswitchlatency"):
+            getswitchlatency(jData)
+        elif (choice == "costcompute"):
+            costcompute(jData,portKey)
+        elif (choice == "Switchlinkinfo"):
+            #print(switch)
+            Switchlinkinfo(jData,switch[h2])
+        
+    else:
+        #response.raise_for_status()
+        #print("abc")
+        return
+
 def Switchlinkinfo(data,s):
         
     global G
@@ -105,9 +103,10 @@ def costcompute(data,key):
 def computeRoute():
     
     nodeList = []
-    aa =  
-    src = int( switch[h2].split(":", 7 )[7],16)
-    dst = int( switch[h1].split(":", 7 )[7],16)
+    a1 =  switch[h2]
+    a2 = switch[h1]
+    src = int( a1.split(":", 7 )[7],16)
+    dst = int( a2.split(":", 7 )[7],16)
     #print ("source is:",src)
     #print ("destination is:",dst)
     pathKey = ""
@@ -155,31 +154,36 @@ def fetchLinkCost():
                 portNumber = linkPorts [srcShortID+ "::" +temp].split( "::" )[0]
                 stats = "http://localhost:8080/wm/statistics/bandwidth/" + src +  "/" + portNumber + "/json"
                 a = "costcompute"
-                fetchResponse(stats,a)
+                fetchResp(stats,a)
                 srcShortID=temp
                 src=link
-
-        portKey = start.split(":")[7] +"::" + mid + "::" + switch[h1].split( ":" )[7]
-        finalcost[ portKey ] = cost
+        a1 = start.split(":")[7]
+        a2 = switch[h1].split( ":" )[7]
+        finalcost[ a1 + "::"+mid+"::"+a2 ]=cost
         cost=0
-        portKey = ""
 
 
 def flowRule( currentNode ,flowCount ,inPort ,outPort ,staticFlowURL):
     a=False
+    b="true"
+    xx = "00:00:00:00:00:00:00:"
+    ff = "flow" + str(flowCount)
+    zero = "0"
+    max_pr = "32768"
+    eth_type = "0x0800"
     flow = 
     {
-        'switch': "00:00:00:00:00:00:00:"+currentNode,
-        "name" : "flow"+str(flowCount),
-        "cookie" : "0",
-        "priority" : "32768",
+        'switch': xx+currentNode,
+        "name" : ff,
+        "cookie" : zero,
+        "priority" : max_pr,
         "in_port" : inPort,
-        "eth_type" : "0x0800",
+        "eth_type" : eth_type,
         "ipv4_src" : h2,
         "ipv4_dst" : h1,
         "eth_src" : deviceMAC[h2],
         "eth_dst" : deviceMAC[h1],
-        "active" : "true",
+        "active" : b,
         "actions" : "output="+outPort
     }
 
@@ -191,19 +195,24 @@ def flowRule( currentNode ,flowCount ,inPort ,outPort ,staticFlowURL):
     systemCommand(cmd)
     flowCount = 1 + flowCount
 
+    xx = "00:00:00:00:00:00:00:"
+    ff = "flow" + str(flowCount)
+    zero = "0"
+    max_pr = "32768"
+    
     flow = 
     {
-        'switch' : "00:00:00:00:00:00:00:" + currentNode,
-        "name" : "flow" +str(flowCount),
-        "cookie" : "0",
-        "priority" : "32768",
+        'switch' :  xx+ currentNode,
+        "name" : ff,
+        "cookie" : zero,
+        "priority" : max_pr,
         "in_port" : outPort,
-        "eth_type" :"0x0800",
+        "eth_type" :eth_type,
         "ipv4_src" : h1,
         "ipv4_dst" : h2,
         "eth_src" : deviceMAC[ h1 ],
         "eth_dst" : deviceMAC[ h2 ],
-        "active" : "true",
+        "active" : b,
         "actions" : "output=" + inPort
     }
     cmd = "curl -X POST -d \'" + json.dumps(flow) + "\' " + staticFlowURL
@@ -213,7 +222,6 @@ def flowRule( currentNode ,flowCount ,inPort ,outPort ,staticFlowURL):
 def systemCommand(cmd):
     terminalProcess = Popen(cmd,stdout = PIPE ,stderr = PIPE,shell = True)
     terminalOutput, stderr = terminalProcess.communicate()
-    #print("\n***", terminalOutput, "\n")
 
 
 def RR(c, arr):
@@ -222,19 +230,20 @@ def RR(c, arr):
 
 
 def addFlow():
-    global shortestPath
     global bestPath
-
+    global shortestPath
+    
     flowCount = 1
-    staticFlowURL="http://127.0.0.1:8080/wm/staticflowpusher/json"
 
     shortestPath = min(finalcost, key = finalcost.get)
     
-    currentNode = shortestPath.split( "::" , 2)[0]
-    nextNode = shortestPath.split("::")[1]
+
+    
     while(False):
         print("1")
     # Port Computation
+    nextNode = shortestPath.split("::")[1]
+    currentNode = shortestPath.split( "::" , 2)[0]
     port = linkPorts[currentNode + "::" + nextNode]
     outPort = port.split("::")[0]
     
@@ -243,7 +252,7 @@ def addFlow():
     except Exception as e:
         inPort = port.split( "::" )[1]
 
-    flowRule(currentNode ,flowCount,inPort,outPort, staticFlowURL)
+    flowRule(currentNode ,flowCount,inPort,outPort, "http://127.0.0.1:8080/wm/staticflowpusher/json")
     previousNode = currentNode
     flowCount= 2 +flowCount
     bestPath = path[shortestPath]
@@ -273,10 +282,10 @@ def addFlow():
                 xx2 = bestPath[currentNode+1].split( ":" )[7]]
                 port = xx1 + "::"+ xx2
                 outPort = port.split("::")[0]
-            
-            flowRule(bestPath[currentNode].split( ":" )[7],flowCount,str(inPort), str(outPort),staticFlowURL)
+            a1 = bestPath[currentNode].split( ":" )[7]
+            flowRule(a1,flowCount, str(inPort) ,str(outPort), "http://127.0.0.1:8080/wm/staticflowpusher/json")
             flowCount =flowCount + 2
-            previousNode =bestPath[currentNode].split(":")[7]
+            previousNode =a1
         return bestPath
 
 
@@ -329,7 +338,8 @@ def getswitchlatency(jData):
     
     temp=0
     for key in path:
-        for switch in path[key]:
+        path_key = path[key]
+        for switch in path_key:
             print(switch)
             try:
                 duration = int( switch.split( ':' ) [ -1])
@@ -345,13 +355,13 @@ def getswitchlatency(jData):
 
 def loadbalance():
     #Method to get data 
-    fetchResponse("http://localhost:8080/wm/topology/links/json" , "Switchlinkinfo")
+    fetchResp("http://localhost:8080/wm/topology/links/json" , "Switchlinkinfo")
     #Finding best Route for Traversal from host to destination 
     computeRoute()
 
     url = ('http://localhost:8080/wm/core/switch/all/flow/json')
     #Finding best Route for Traversal from host to destination 
-    fetchResponse(url , "getswitchlatency")
+    fetchResp(url , "getswitchlatency")
 
     getlinkLatency()
     #Find link cost from bandwidth URI
@@ -398,7 +408,7 @@ G = nx.Graph()
 try:
 
     requests.put("http://localhost:8080/wm/statistics/config/enable/json/")  
-    fetchResponse("http://localhost:8080/wm/device/","deviceInfo")
+    fetchResp("http://localhost:8080/wm/device/","deviceInfo")
     #calling load balance function
     loadbalance()
 
